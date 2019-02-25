@@ -2,7 +2,7 @@
   <div style="width: 100%">
     <draggable class="columns" v-model="BigArray" :option="{group: 'lists'}" @start="drag=true" @end="drag=false">
       <div class="list-elements" v-for="(bigelement,i) in BigArray" :key="bigelement.id">
-        <div :style="'background-color: ' + BigArray[i].color">
+        <div :style="'background-color: ' + BigArray[i].color +';border-radius: 5px'">
           <p>{{BigArray[i]['bigname']}}({{BigArray[i]['array'].length}})</p>
           <draggable class="list" v-model="BigArray[i]['array']" :options="{group:'people'}" @start="drag=true" @end="drag=false">
             <div class="card-elements" v-for="element in BigArray[i]['array']" :key="element.id">
@@ -24,6 +24,7 @@
 </template>
 
 <script>
+// КАРТОЧКИ ТАСКАТЬ ЗА ИМЯ!!!
 import draggable from 'vuedraggable'
 export default {
   name: 'MyCards',
@@ -32,8 +33,9 @@ export default {
   },
   data () {
     return {
-      add_new: [],
-      BigArray: [
+      add_new: [], // массив, где хранятся id массивов в BigArray(
+      // они не меняются при перестановках) с информацией о том, открыта или закрыта область добавления новоего имени
+      BigArray: [ // наш массив с данными, которые будто бы приходят из бэка
         {
           'bigname': 'Имена',
           'color': 'red',
@@ -117,22 +119,39 @@ export default {
     this.add_new = new Array(this.BigArray.length).fill(false)
   },
   methods: {
+    // присваивает true элементу массива, где хранятся данные о том, открыто ли
+    // добавление в карточку, для соответствующего листа
+    // реактивно добавление в карточку откроется
     addButtonClick: function (number) {
       this.add_new.splice(number, 1, true)
     },
+    // добавляет новое имя в карточку
     addName: function (number) {
+      // вычисляем реф добавления соответствующего листа и забираем из нее значение имени
       var newName = this.$refs['newnamearea' + number.toString()][0].value
+      // создаем элимент, что будем пушить
       var newElement = {}
+      // добавляем в элемент новое имя
       newElement.name = newName
+      // -1 на случай неотработки цикла ни разу
       var realNumber = -1
+      // пока не нашли index, в котором поселился нужный id BigArray, index++
       for (let index = 0; this.BigArray[index].id !== number; index++) {
         realNumber = index
       }
+      // как нашли, цикл не сделает итерацию, поэтому realNumber нужно инкрементить
       realNumber += 1
-      newElement.id = this.BigArray[realNumber].array.length + 1
+      // вычисляем id добавляемого элемента, он будет у нас равен длинне массива
+      // т.к. индексы нацинаются с нуля, а не с 1
+      newElement.id = this.BigArray[realNumber].array.length
+      // добавляем
       this.BigArray[realNumber].array.push(newElement)
+      // опусташаем textarea
       this.$refs['newnamearea' + number.toString()][0].value = ''
     },
+    // присваивает false элементу массива, где хранятся данные о том, открыто ли
+    // добавление в карточку, для соответствующего листа
+    // реактивно добавление в карточку закроется
     closeAddName: function (number) {
       this.add_new.splice(number, 1, false)
     }
